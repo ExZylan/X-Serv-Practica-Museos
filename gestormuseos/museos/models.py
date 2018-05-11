@@ -18,9 +18,7 @@ class Museo(models.Model):
 	accesible = models.IntegerField()
 	barrio = models.CharField(max_length=128)
 	distrito = models.CharField(max_length=128)
-	datos = models.CharField(max_length=128)
 	telefono = models.CharField(max_length=128)
-	direccion = models.CharField(max_length=128)
 	fax = models.CharField(max_length=128)
 	email = models.CharField(max_length=128)
 	def __str__(self):
