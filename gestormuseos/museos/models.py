@@ -13,7 +13,7 @@ class Usuario(models.Model):
 class Museo(models.Model):
 	nombre = models.CharField(max_length=128)
 	enlace = models.CharField(max_length=128)
-	direccion = models.CharField(max_length=128)
+	direccion = models.CharField(max_length=5000)
 	descripcion = models.TextField()
 	accesible = models.IntegerField()
 	barrio = models.CharField(max_length=128)
