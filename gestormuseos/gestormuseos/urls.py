@@ -18,5 +18,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^carga/$', 'museos.views.cargar_museos'),
+    url(r'^museos/$', 'museos.views.museoslist'),
+    url(r'^museos/(\d+)$', 'museos.views.museo'),
     url(r'^$','museos.views.barra')
 ]

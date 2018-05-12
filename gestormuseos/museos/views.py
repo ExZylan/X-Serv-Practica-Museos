@@ -11,6 +11,14 @@ from .models import Usuario, Museo, Favorito, Comentario
 
 # Create your views here.
 
+def creadistritos(museos):
+    listadistritos = []
+    for museo in museos:
+        if museo.distrito not in listadistritos:
+            listadistritos.append(museo.distrito)
+    return listadistritos
+
+
 def contador(comentarios):
     repeticiones ={}
     for comentario in comentarios:
@@ -54,6 +62,31 @@ def barra(request):
 
     repeticiones = contador(comentarios)
     respuesta = mascomentados(repeticiones)
-    
 
     return HttpResponse(respuesta)
+
+@csrf_exempt
+def museoslist(request):
+    i=0
+    museos = Museo.objects.all()
+    listadistritos = creadistritos(museos)
+    respuesta = "<ul>" + """<form action=" + script.php + " method=" + post + ">Distrito:<select name="distrito">"""
+    for i in range(len(listadistritos)):
+        respuesta += """<option value="""
+        respuesta += listadistritos[i]
+        respuesta += """>""" + listadistritos[i] + """</option>"""
+    respuesta += """ </option></select><input type="submit" value="Enviar"><br></form>"""
+    for museo in museos:
+        respuesta += '<li> '+ museo.nombre + '<a href="' + str(museo.enlace) + '">' + " Enlace a página" + '</a>'
+    respuesta += "</ul><ul>" 
+    
+    return HttpResponse(respuesta)
+    
+
+@csrf_exempt
+def museo(request, number):
+    try:
+        museo = Museo.objects.get(id=int(number))
+    except Museo.DoesNotExist:
+        return HttpResponse("no existe")
+    return HttpResponse("no rula")
