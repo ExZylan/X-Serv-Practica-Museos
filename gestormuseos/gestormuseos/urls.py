@@ -17,5 +17,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^carga/$', 'museos.views.cargar_museos')
+    url(r'^carga/$', 'museos.views.cargar_museos'),
+    url(r'^$','museos.views.barra')
 ]

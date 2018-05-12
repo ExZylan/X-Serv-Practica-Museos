@@ -54,11 +54,11 @@ class myContentHandler(ContentHandler):
             self.accesible = int(self.theContent)
         elif self.attribute == "CONTENT-URL":
             self.enlace = self.theContent
-
         # direccion
         elif self.attribute == "CLASE-VIAL":
             self.direccion = self.theContent + " " + self.direccion
         elif self.attribute == "NOMBRE-VIA":
+            self.direccion = ""
             self.direccion += self.theContent + ", " + "NUM: "
         elif self.attribute == "NUM":
             self.direccion += self.theContent
@@ -68,7 +68,6 @@ class myContentHandler(ContentHandler):
             self.barrio = self.theContent
         elif self.attribute == "DISTRITO":
             self.distrito = self.theContent
-
         # contacto
         elif self.attribute == "TELEFONO":
             if self.theContent != "":

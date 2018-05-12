@@ -1,14 +1,18 @@
 from django.db import models
+from django.contrib.auth.models import User
+import datetime
+from django.utils import timezone
 
 # Create your models here.
 
 class Usuario(models.Model):
-	nombre = models.CharField(max_length=128)
+	nombre = models.OneToOneField(User, related_name="usuario")
 	color = models.CharField(max_length=128)
-	fuente = models.IntegerField()
+	tamano = models.IntegerField()
 	titulo = models.CharField(max_length=128)
+	fondo = models.CharField(max_length=128)
 	def __str__(self):
-			return self.nombre
+			return self.nombre.username
 
 class Museo(models.Model):
 	nombre = models.CharField(max_length=128)
@@ -29,7 +33,7 @@ class Favorito(models.Model):
 	museo = models.ForeignKey(Museo)
 	fecha = models.DateTimeField()
 	def __str__(self):
-		return self.usuario.nombre + ", " + self.museo.nombre + ", " + str(self.fecha)
+		return self.usuario.nombre.username + ", " + self.museo.nombre + ", " + str(self.fecha)
 
 class Comentario(models.Model):
 	usuario = models.ForeignKey(Usuario)
@@ -37,4 +41,4 @@ class Comentario(models.Model):
 	fecha = models.DateTimeField()
 	comentario = models.TextField()
 	def __str__(self):
-		return self.usuario.nombre + ", " + self.museo.nombre + ", " + self.comentario
+		return self.usuario.nombre.username + ", " + self.museo.nombre + ", " + self.comentario
