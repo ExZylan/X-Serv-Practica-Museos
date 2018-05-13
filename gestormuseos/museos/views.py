@@ -11,6 +11,16 @@ from .models import Usuario, Museo, Favorito, Comentario
 
 # Create your views here.
 
+def formulariodistritos(listadistritos):
+    respuesta = "<ul>" + """<form action="" method="post">Distrito:<select name="distrito">"""
+    for i in range(len(listadistritos)):
+        respuesta += """<option value="""
+        respuesta += listadistritos[i]
+        respuesta += """>""" + listadistritos[i] + """</option>"""
+    respuesta += """ </option></select><input type="submit" value="Enviar"><br></form>"""
+
+    return respuesta
+
 def creadistritos(museos):
     listadistritos = []
     for museo in museos:
@@ -69,13 +79,10 @@ def barra(request):
 def museoslist(request):
     i=0
     museos = Museo.objects.all()
+    if request.method == "POST":
+        museos = Museo.objects.filter(distrito=request.POST['distrito'])
     listadistritos = creadistritos(museos)
-    respuesta = "<ul>" + """<form action=" + script.php + " method=" + post + ">Distrito:<select name="distrito">"""
-    for i in range(len(listadistritos)):
-        respuesta += """<option value="""
-        respuesta += listadistritos[i]
-        respuesta += """>""" + listadistritos[i] + """</option>"""
-    respuesta += """ </option></select><input type="submit" value="Enviar"><br></form>"""
+    respuesta = formulariodistritos(listadistritos)
     for museo in museos:
         respuesta += '<li> '+ museo.nombre + '<a href="' + str(museo.enlace) + '">' + " Enlace a página" + '</a>'
     respuesta += "</ul><ul>" 
