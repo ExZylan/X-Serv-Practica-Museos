@@ -11,6 +11,32 @@ from .models import Usuario, Museo, Favorito, Comentario
 
 # Create your views here.
 
+FILTROPOST = '''
+            <form action="" Method="POST">
+            <input type="submit" value="Accesibles">
+</form>
+'''
+
+FILTROGET = '''
+            <form action="" Method="GET">
+            <input type="submit" value="Todos">
+</form>
+'''
+
+def filtraaccesibles(listaaccesibles, repeticiones):
+    for repeticion in repeticiones:
+        if repeticion not in listaaccesibles:
+            repeticiones.remove(repeticion)
+
+    return listaaccesibles
+
+def buscaaccesibles(comentarios):
+    listaaccesibles = []
+    for accesible in comentarios:
+        if accesible.museo.accesible == 1:
+            listaaccesibles.append(accesible.museo.nombre)
+    return listaaccesibles
+
 def formulariodistritos(listadistritos):
     respuesta = "<ul>" + """<form action="" method="post">Distrito:<select name="distrito">"""
     for i in range(len(listadistritos)):
@@ -30,23 +56,24 @@ def creadistritos(museos):
 
 
 def contador(comentarios):
-    repeticiones ={}
+    repeticiones = {}
     for comentario in comentarios:
         if comentario.museo.nombre in repeticiones:
             repeticiones[comentario.museo.nombre] = repeticiones[comentario.museo.nombre] + 1
         else:
             repeticiones[comentario.museo.nombre] = 1
-    repeticiones = OrderedDict(sorted(repeticiones.items()))
+    repeticiones = [(k, repeticiones[k]) for k in sorted(repeticiones, key=repeticiones.get, reverse=True)]
+    #print(repeticiones)
     return repeticiones
 
 def mascomentados(repeticiones):
     repe = 1
     museos = Museo.objects.all()
     respuesta = "<ul>"
-    for repeticion in repeticiones.keys():
+    for repeticion in repeticiones:
         for museo in museos:
 #            print (repeticion)
-            if repeticion == museo.nombre and repe <= 5:
+            if repeticion[0] == museo.nombre and repe <= 5:
                 respuesta += '<li><a href="' + str(museo.enlace) + '">' + museo.nombre + "<br>" + '</a>' + museo.direccion + "<br>" + '<a href="museos/' + str(museo.id) + '">' + "Mas Información" + '</a>'
                 repe = repe + 1
         respuesta += "</ul><ul>" 
@@ -68,16 +95,28 @@ def cargar_museos(request):
 
 @csrf_exempt
 def barra(request):
+    if request.user.is_authenticated():
+        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
+    else:
+        logged = 'Not logged in. <a href="/login"> Login</a>'
     comentarios = Comentario.objects.all()
 
     repeticiones = contador(comentarios)
     respuesta = mascomentados(repeticiones)
+    boton = FILTROPOST
+    
+    if request.method == "POST":
+        listaaccesibles = buscaaccesibles(comentarios)
+        repeticiones = filtraaccesibles(listaaccesibles, repeticiones)
+        respuesta = mascomentados(repeticiones)
 
-    return HttpResponse(respuesta)
+    #print(listaaccesibles)
+    #print(repeticiones)
+
+    return HttpResponse(logged + "<br>" + respuesta + "<br>" + boton)
 
 @csrf_exempt
 def museoslist(request):
-    i=0
     museos = Museo.objects.all()
     if request.method == "POST":
         museos = Museo.objects.filter(distrito=request.POST['distrito'])
