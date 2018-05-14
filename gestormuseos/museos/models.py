@@ -38,7 +38,7 @@ class Favorito(models.Model):
 class Comentario(models.Model):
 	usuario = models.ForeignKey(Usuario)
 	museo = models.ForeignKey(Museo)
-	fecha = models.DateTimeField()
+	fecha = models.DateTimeField(default = timezone.now())
 	comentario = models.TextField()
 	def __str__(self):
 		return self.usuario.nombre.username + ", " + self.museo.nombre + ", " + self.comentario

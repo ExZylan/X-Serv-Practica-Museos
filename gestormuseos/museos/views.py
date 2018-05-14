@@ -23,6 +23,14 @@ FILTROTODOS = '''
 </form>
 '''
 
+FORMULARIO = """
+<form action= "" method="POST">
+    Comentario: <input type="text" name="comentario">
+    <input type="submit" value="Enviar">
+</form>
+"""
+
+
 def enlacespaginas(number, query, favoritos, cinco):
     respuesta = ""
     print(int(len(favoritos)))
@@ -146,6 +154,7 @@ def barra(request):
         logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
     else:
         logged = 'Not logged in. <a href="/login"> Login</a>'
+
     comentarios = Comentario.objects.all()
     usuarios = Usuario.objects.all()
 
@@ -164,6 +173,11 @@ def barra(request):
 
 @csrf_exempt
 def museoslist(request):
+    if request.user.is_authenticated():
+        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
+    else:
+        logged = 'Not logged in. <a href="/login"> Login</a>'
+
     museos = Museo.objects.all()
     if request.method == "POST":
         museos = Museo.objects.filter(distrito=request.POST['distrito'])
@@ -173,21 +187,36 @@ def museoslist(request):
         respuesta += '<li> '+ museo.nombre + '<a href="' + str(museo.enlace) + '">' + " Enlace a página" + '</a>'
     respuesta += "</ul><ul>" 
     
-    return HttpResponse(respuesta)
+    return HttpResponse(logged + "<br>" + respuesta)
     
 
 @csrf_exempt
 def museo(request, number):
+    if request.method == "POST":
+        comentario = Comentario(comentario = request.POST['comentario'], usuario = Usuario.objects.get(nombre = request.user), museo = Museo.objects.get(id=int(number)))
+        comentario.save()
+
+    if request.user.is_authenticated():
+        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
+        formulario = FORMULARIO
+    else:
+        logged = 'Not logged in. <a href="/login"> Login</a>'
+        formulario = ""
     try:
         museos = Museo.objects.all()
         museo = Museo.objects.get(id=int(number))
         respuesta = muestrainfo(museo, museos)
     except Museo.DoesNotExist:
         return HttpResponse("no existe")
-    return HttpResponse(respuesta)
+    return HttpResponse(logged + "<br>" + respuesta + "<br>" + formulario)
 
 @csrf_exempt
 def usuario(request, number):
+    if request.user.is_authenticated():
+        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
+    else:
+        logged = 'Not logged in. <a href="/login"> Login</a>'
+
     query = request.GET.get('pag')
     cinco = False
 
@@ -195,4 +224,4 @@ def usuario(request, number):
     respuesta, cinco = listavoritos(favoritos, query, number, cinco)
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
-    return HttpResponse(respuesta + "<br>" + saltodepagina)
+    return HttpResponse(logged + "<br>" + respuesta + "<br>" + saltodepagina)
