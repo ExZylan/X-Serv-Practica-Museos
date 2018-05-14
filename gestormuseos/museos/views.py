@@ -11,13 +11,13 @@ from .models import Usuario, Museo, Favorito, Comentario
 
 # Create your views here.
 
-FILTROPOST = '''
+FILTROACCESIBLE = '''
             <form action="" Method="POST">
             <input type="submit" value="Accesibles">
 </form>
 '''
 
-FILTROGET = '''
+FILTROTODOS = '''
             <form action="" Method="GET">
             <input type="submit" value="Todos">
 </form>
@@ -25,10 +25,9 @@ FILTROGET = '''
 
 def filtraaccesibles(listaaccesibles, repeticiones):
     for repeticion in repeticiones:
-        if repeticion not in listaaccesibles:
+        if repeticion[0] not in listaaccesibles:
             repeticiones.remove(repeticion)
-
-    return listaaccesibles
+    return repeticiones
 
 def buscaaccesibles(comentarios):
     listaaccesibles = []
@@ -63,7 +62,6 @@ def contador(comentarios):
         else:
             repeticiones[comentario.museo.nombre] = 1
     repeticiones = [(k, repeticiones[k]) for k in sorted(repeticiones, key=repeticiones.get, reverse=True)]
-    #print(repeticiones)
     return repeticiones
 
 def mascomentados(repeticiones):
@@ -72,7 +70,6 @@ def mascomentados(repeticiones):
     respuesta = "<ul>"
     for repeticion in repeticiones:
         for museo in museos:
-#            print (repeticion)
             if repeticion[0] == museo.nombre and repe <= 5:
                 respuesta += '<li><a href="' + str(museo.enlace) + '">' + museo.nombre + "<br>" + '</a>' + museo.direccion + "<br>" + '<a href="museos/' + str(museo.id) + '">' + "Mas Información" + '</a>'
                 repe = repe + 1
@@ -103,15 +100,13 @@ def barra(request):
 
     repeticiones = contador(comentarios)
     respuesta = mascomentados(repeticiones)
-    boton = FILTROPOST
+    boton = FILTROACCESIBLE
     
     if request.method == "POST":
         listaaccesibles = buscaaccesibles(comentarios)
         repeticiones = filtraaccesibles(listaaccesibles, repeticiones)
         respuesta = mascomentados(repeticiones)
-
-    #print(listaaccesibles)
-    #print(repeticiones)
+        boton = FILTROTODOS
 
     return HttpResponse(logged + "<br>" + respuesta + "<br>" + boton)
 
