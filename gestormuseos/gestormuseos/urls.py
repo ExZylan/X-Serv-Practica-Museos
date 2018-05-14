@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^carga/$', 'museos.views.cargar_museos'),
     url(r'^museos/$', 'museos.views.museoslist'),
     url(r'^museos/(\d+)$', 'museos.views.museo'),
+    url(r'^usuario/(\d+)$', 'museos.views.usuario'),
     url(r'^$','museos.views.barra'),
     url(r'^logout', logout),
     url(r'^login', login)

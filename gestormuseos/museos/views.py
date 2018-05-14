@@ -23,6 +23,41 @@ FILTROTODOS = '''
 </form>
 '''
 
+def enlacespaginas(number, query, favoritos, cinco):
+    respuesta = ""
+    print(int(len(favoritos)))
+    if cinco:
+        respuesta = '<a href="' + str(number) + "?pag=" + str((int(query) + 1)) + '">' + "Página siguiente" + '</a>'
+    if int(query) > 0: 
+        respuesta += '<br><a href="' + str(number) + "?pag=" + str((int(query) + -1)) + '">' + "Página anterior" + '</a>'
+
+    return respuesta
+
+def listavoritos(favoritos, query, number, cinco):
+    i=0
+    museoinicio = int(query) * 5
+    museofinal = (int(query) + 1) * 5 -1
+
+    respuesta = "<ul>"
+    for favorito in favoritos:
+        if str(number) == str(favorito.usuario.id):
+            if i >= museoinicio and i <= museofinal:
+                respuesta += '<li><a href="' + str(favorito.museo.enlace) + '">' + favorito.museo.nombre + "<br>" + '</a>' + favorito.museo.direccion + "<br>" + str(favorito.fecha) + "<br>" + '<a href="museos/' + str(favorito.museo.id) + '">' + "Mas Información" + '</a>'
+                respuesta += "</ul><ul>"
+            if i == museofinal:
+                cinco = True
+            i = i+1
+            #print(cinco)
+
+    return respuesta, cinco
+
+def listarusuarios(usuarios):
+    respuesta = ""
+    for usuario in usuarios:
+        respuesta += "<br><li>" + str(usuario.nombre) + ": " + '<a href="usuario/' + str(usuario.id) + '?pag=0">' + usuario.titulo + '</a>'
+
+    return respuesta
+
 def muestrainfo(museo, museos):
     comentarios = Comentario.objects.all()
     for nombre in museos:
@@ -112,9 +147,11 @@ def barra(request):
     else:
         logged = 'Not logged in. <a href="/login"> Login</a>'
     comentarios = Comentario.objects.all()
+    usuarios = Usuario.objects.all()
 
     repeticiones = contador(comentarios)
     respuesta = mascomentados(repeticiones)
+    listausuarios = listarusuarios(usuarios)
     boton = FILTROACCESIBLE
     
     if request.method == "POST":
@@ -123,7 +160,7 @@ def barra(request):
         respuesta = mascomentados(repeticiones)
         boton = FILTROTODOS
 
-    return HttpResponse(logged + "<br>" + respuesta + "<br>" + boton)
+    return HttpResponse(logged + "<br>" + respuesta + "<br>" + listausuarios + "<br>" + boton)
 
 @csrf_exempt
 def museoslist(request):
@@ -148,3 +185,14 @@ def museo(request, number):
     except Museo.DoesNotExist:
         return HttpResponse("no existe")
     return HttpResponse(respuesta)
+
+@csrf_exempt
+def usuario(request, number):
+    query = request.GET.get('pag')
+    cinco = False
+
+    favoritos = Favorito.objects.all()
+    respuesta, cinco = listavoritos(favoritos, query, number, cinco)
+    saltodepagina = enlacespaginas(number, query, favoritos, cinco)
+
+    return HttpResponse(respuesta + "<br>" + saltodepagina)
