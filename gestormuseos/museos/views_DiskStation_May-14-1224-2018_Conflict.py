@@ -27,15 +27,10 @@ def muestrainfo(museo, museos):
     comentarios = Comentario.objects.all()
     for nombre in museos:
         if museo in museos:
-            if museo.accesible:
-                accesible = "Si"
-            else:
-                accesible = "No"
-            respuesta = "<ul>" + "Nombre: " + museo.nombre + "<br>Dirección: " + museo.direccion +  "<br>Barrio: " + museo.barrio + "<br>Distrito: " + museo.distrito + "<br>Accesibilidad: " + accesible + "<br>Contacto:<br><li>Teléfono: " + museo.telefono + "<br><li>Fax: " + museo.fax + "<br><li>Email: " + museo.email + "<br>Descripción: " + museo.descripcion + "<br>" + '<a href="' + str(museo.enlace) + '">' + "Enlace página web" + "<br>" + '</a>'
-        respuesta += "<br> Comentarios: "
+            respuesta = "<ul>" + "Nombre: " + museo.nombre + "<br>Dirección: " + museo.direccion +  "<br>Barrio: " + museo.barrio + "<br>Distrito: " + museo.distrito + "<br>Contacto:<br><li>Teléfono: " + museo.telefono + "<br><li>Fax: " + museo.fax + "<br><li>Email: " + museo.email + "<br>Descripción: " + museo.descripcion + "<br>" + '<a href="' + str(museo.enlace) + '">' + "Enlace página web" + "<br>" + '</a>'
     for comentario in comentarios:
-        if str(museo) == str(comentario.museo.nombre):
-            respuesta += "<br><li>" + comentario.comentario
+        if museo == comentario:
+            respuesta += "<br>" + comentario.comentario
     return respuesta
 
 def filtraaccesibles(listaaccesibles, repeticiones):
