@@ -31,7 +31,7 @@ class Museo(models.Model):
 class Favorito(models.Model):
 	usuario = models.ForeignKey(Usuario)
 	museo = models.ForeignKey(Museo)
-	fecha = models.DateTimeField()
+	fecha = models.DateTimeField(default = timezone.now())
 	def __str__(self):
 		return self.usuario.nombre.username + ", " + self.museo.nombre + ", " + str(self.fecha)
 

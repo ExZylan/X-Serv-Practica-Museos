@@ -36,9 +36,19 @@ class myContentHandler(ContentHandler):
         if name == 'contenido' and not self.first_museo: #guarda el museo anterior
             museo = Museo(nombre = self.nombre, descripcion = self.descripcion, accesible = self.accesible, enlace = self.enlace, direccion = self.direccion, barrio = self.barrio, distrito = self.distrito, telefono = self.telefono, fax = self.fax, email = self.email).save()
 
+            self.nombre = ""
+            self.enlace = ""
+            self.direccion = ""
+            self.descripcion = ""
+            self.barrio = ""
+            self.distrito = ""
+            self.telefono = ""
+            self.fax = ""
+            self.email = ""
+
         if name == 'atributo':
             self.attribute = attrs.get("nombre")
-        if self.attribute in ["NOMBRE", "DESCRIPCION", "ACCESIBILIDAD", "CONTENT-URL", "CLASE-VIAL", "BARRIO", "DISTRITO", "TELEFONO", "EMAIL", "FAX", "NOMBRE-VIA","NUM"]:
+        if self.attribute in ["NOMBRE", "DESCRIPCION-ENTIDAD", "ACCESIBILIDAD", "CONTENT-URL", "CLASE-VIAL", "BARRIO", "DISTRITO", "TELEFONO", "EMAIL", "FAX", "NOMBRE-VIA","NUM"]:
             self.inContent = True
 
 
@@ -48,7 +58,7 @@ class myContentHandler(ContentHandler):
             if self.first_museo:
                 self.first_museo = False
             self.nombre = self.theContent
-        elif self.attribute == "DESCRIPCION":
+        elif self.attribute == "DESCRIPCION-ENTIDAD":
             self.descripcion = self.theContent
         elif self.attribute == "ACCESIBILIDAD":
             self.accesible = int(self.theContent)

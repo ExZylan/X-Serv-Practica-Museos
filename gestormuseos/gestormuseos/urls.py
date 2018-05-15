@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^museos/$', 'museos.views.museoslist'),
     url(r'^museos/(\d+)$', 'museos.views.museo'),
     url(r'^usuario/(\d+)$', 'museos.views.usuario'),
+    url(r'^usuario/(\d+)/XML$', 'museos.views.xml'),
     url(r'^$','museos.views.barra'),
     url(r'^logout', logout, {'next_page': '/'}),
     url(r'^login', 'museos.views.Login')

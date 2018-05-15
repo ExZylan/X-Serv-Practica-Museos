@@ -28,6 +28,7 @@ FILTROTODOS = '''
 FORMULARIO_COMENTARIOS = """
 <form action= "" method="POST">
     Comentario: <input type="text" name="comentario">
+    <input type= 'hidden' name='opcion' value='1'>
     <input type="submit" value="Enviar">
 </form>
 """
@@ -43,8 +44,21 @@ def Login_info(request):
         log += "password: <input type= 'password' name='password'>"
         log += "<input type= 'submit' value='enviar'>"
         log += "</form>"
-        log += "<a href='/registro/'>Register </a>"
+        #log += "<a href='/registro/'>Register </a>"
     return log
+
+def seleccionafavorito(usuario, museo):
+    favoritos = Favorito.objects.all()
+    existe = False
+
+    for favorit in favoritos:
+        if str(favorit.museo.nombre) == str(museo):
+            existe = True
+            favorito =""
+    if not existe:
+        favorito = "<form action='/museos/" + str(museo.id) + "' Method='POST'><input type='submit' value='Like'><input type= 'hidden' name='usuarioo' value= " + usuario + "><input type= 'hidden' name='opcion' value='2'></form>"
+
+    return favorito
 
 @csrf_exempt
 def Login(request):
@@ -211,7 +225,7 @@ def museoslist(request):
     listadistritos = creadistritos(museos)
     respuesta = formulariodistritos(listadistritos)
     for museo in museos:
-        respuesta += '<li> '+ museo.nombre + '<a href="' + str(museo.enlace) + '">' + " Enlace a página" + '</a>'
+        respuesta += '<li> '+ museo.nombre + '<a href="/museos/' + str(museo.id) + '">' + " Enlace a página" + '</a>'
     respuesta += "</ul><ul>" 
     
     return HttpResponse(logueo + "<br>" + respuesta)
@@ -220,21 +234,31 @@ def museoslist(request):
 @csrf_exempt
 def museo(request, number):
     if request.method == "POST":
-        comentario = Comentario(comentario = request.POST['comentario'], usuario = Usuario.objects.get(nombre = request.user), museo = Museo.objects.get(id=int(number)))
-        comentario.save()
+        opcion = request.POST['opcion']
+        if opcion == "1":
+            comentario = Comentario(comentario = request.POST['comentario'], usuario = Usuario.objects.get(nombre = request.user), museo = Museo.objects.get(id=int(number)))
+            comentario.save()
+        elif opcion == "2":
+            favorito = Favorito(museo = Museo.objects.get(id=int(number)), usuario = Usuario.objects.get(nombre = request.user))
+            favorito.save()
+
+    usuario = request.user.username
 
     logueo = Login_info(request)
-    if request.user.is_authenticated():
-        formulario = FORMULARIO_COMENTARIOS
-    else:
-        formulario = ""
+
     try:
         museos = Museo.objects.all()
         museo = Museo.objects.get(id=int(number))
         respuesta = muestrainfo(museo, museos)
+        if request.user.is_authenticated():
+            formulario = FORMULARIO_COMENTARIOS
+            favorito = seleccionafavorito(usuario, museo)
+        else:
+            formulario = ""
+            favorito = ""
     except Museo.DoesNotExist:
         return HttpResponse("no existe")
-    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + formulario)
+    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + formulario + "<br>" + favorito)
 
 @csrf_exempt
 def usuario(request, number):
@@ -267,3 +291,32 @@ def usuario(request, number):
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
     return HttpResponse(logueo + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
+
+def xml(request, number):
+    favoritos = Favorito.objects.all()
+    usuario = Usuario.objects.get(id = number)
+    print(usuario)
+    xml = """<?xml version="1.0" encoding="UTF-8" ?>\n\n\n"""
+    xml += "\n<Contenidos>\n"
+    for favorito in favoritos:
+        #print(favorito)
+        if usuario.nombre.username == favorito.usuario.nombre.username:
+            #print(usuario.nombre.username)
+            xml += "\t<contenido>\n"
+            xml += """\t\t<atributo nombre = "NOMBRE">""" + favorito.museo.nombre + """</atributo>\n"""
+            xml += """\t\t<atributo nombre = "DESCRIPCION-ENTIDAD">""" + favorito.museo.descripcion + """</atributo>\n"""
+            xml += """\t\t<atributo nombre = "ACCESIBILIDAD">""" + str(favorito.museo.accesible) + """</atributo>\n"""
+            xml += """\t\t<atributo nombre = "CONTENT-URL">""" + favorito.museo.email + """</atributo>\n"""
+            xml += """\t\t<atributo nombre = "LOCALIZACION">\n"""
+            xml += """\t\t\t<atributo nombre = "DIRECCION">""" + favorito.museo.direccion + """</atributo>\n"""
+            xml += """\t\t\t<atributo nombre = "BARRIO">""" + favorito.museo.barrio + """</atributo>\n"""
+            xml += """\t\t\t<atributo nombre = "DISTRITO">""" + favorito.museo.distrito + """</atributo>\n"""
+            xml += """\t\t</atributo>\n"""
+            xml += """\t\t<atributo nombre = "DATOS-CONTACTOS">\n"""
+            xml += """\t\t\t<atributo nombre = "TELEFONO">""" + favorito.museo.telefono + """</atributo>\n"""
+            xml += """\t\t\t<atributo nombre = "FAX">""" + favorito.museo.fax + """</atributo>\n"""
+            xml += """\t\t\t<atributo nombre = "EMAIL">""" + favorito.museo.email + """</atributo>\n"""
+            xml += """\t\t</atributo>\n"""
+            xml += "\t</contenido>\n"
+    xml += "</Contenidos>"
+    return HttpResponse(xml, content_type="text/xml")        
