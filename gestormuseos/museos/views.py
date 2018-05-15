@@ -23,17 +23,26 @@ FILTROTODOS = '''
 </form>
 '''
 
-FORMULARIO = """
+FORMULARIO_COMENTARIOS = """
 <form action= "" method="POST">
     Comentario: <input type="text" name="comentario">
     <input type="submit" value="Enviar">
 </form>
 """
 
+def formfuente(usuario): 
+    formulariofuente = "<br>¿Cambiar formato?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Color letras: <input type= 'text' name='color'>Tamaño letras: <input type= 'text' name='tamano'>Color fondo: <input type= 'text' name='fondo'><input type= 'hidden' name='opcion' value='1'><input type= 'submit' value='enviar'></form>"
+
+    return formulariofuente
+
+def formtitulo(usuario):
+    formulariotitulo = "<br>¿Cambiar Titulo?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Titulo: <input type= 'text' name='titulo'><input type= 'hidden' name='opcion' value='2'><input type= 'submit' value='enviar'></form>"
+
+    return formulariotitulo
 
 def enlacespaginas(number, query, favoritos, cinco):
     respuesta = ""
-    print(int(len(favoritos)))
+    #print(int(len(favoritos)))
     if cinco:
         respuesta = '<a href="' + str(number) + "?pag=" + str((int(query) + 1)) + '">' + "Página siguiente" + '</a>'
     if int(query) > 0: 
@@ -55,7 +64,6 @@ def listavoritos(favoritos, query, number, cinco):
             if i == museofinal:
                 cinco = True
             i = i+1
-            #print(cinco)
 
     return respuesta, cinco
 
@@ -198,7 +206,7 @@ def museo(request, number):
 
     if request.user.is_authenticated():
         logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
-        formulario = FORMULARIO
+        formulario = FORMULARIO_COMENTARIOS
     else:
         logged = 'Not logged in. <a href="/login"> Login</a>'
         formulario = ""
@@ -212,6 +220,25 @@ def museo(request, number):
 
 @csrf_exempt
 def usuario(request, number):
+    usuario = Usuario.objects.get(id = number)
+    if request.method == "POST":
+        opcion = request.POST['opcion']
+        if opcion == "1":
+            usuario.color = request.POST['color']
+            usuario.tamano = request.POST['tamano']
+            usuario.fondo = request.POST['fondo']
+        elif opcion == "2":
+            usuario.titulo = request.POST['titulo']
+        usuario.save()
+
+    if usuario.nombre.username == request.user.username:
+        formulariotitulo = formtitulo(usuario)
+        formulariofuente = formfuente(usuario)
+
+    else:
+        formulariotitulo = "No eres propietario de la pagina"
+        formulariofuente = ""
+
     if request.user.is_authenticated():
         logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
     else:
@@ -224,4 +251,4 @@ def usuario(request, number):
     respuesta, cinco = listavoritos(favoritos, query, number, cinco)
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
-    return HttpResponse(logged + "<br>" + respuesta + "<br>" + saltodepagina)
+    return HttpResponse(logged + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
