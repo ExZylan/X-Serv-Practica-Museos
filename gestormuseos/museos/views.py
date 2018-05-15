@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
@@ -6,6 +6,8 @@ from museos.xml_parser import myContentHandler
 from django.views.decorators.csrf import csrf_exempt
 from collections import OrderedDict
 import urllib.request
+
+from django.contrib.auth import authenticate, login
 
 from .models import Usuario, Museo, Favorito, Comentario
 
@@ -29,6 +31,29 @@ FORMULARIO_COMENTARIOS = """
     <input type="submit" value="Enviar">
 </form>
 """
+
+@csrf_exempt
+def Login_info(request):
+    if request.user.is_authenticated():
+        log = "<p>Logged in as " + request.user.username
+        log += "<a href='/logout'> Logout </a></p>"
+    else:
+        log = "<form action='/login' method='post'>"
+        log += "user: <input type= 'text' name='user'>"
+        log += "password: <input type= 'password' name='password'>"
+        log += "<input type= 'submit' value='enviar'>"
+        log += "</form>"
+        log += "<a href='/registro/'>Register </a>"
+    return log
+
+@csrf_exempt
+def Login(request):
+    user = request.POST['user']
+    password = request.POST['password']
+    user = authenticate(username=user, password=password)
+    if user is not None:
+        login(request, user)
+    return redirect("/")
 
 def formfuente(usuario): 
     formulariofuente = "<br>¿Cambiar formato?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Color letras: <input type= 'text' name='color'>Tamaño letras: <input type= 'text' name='tamano'>Color fondo: <input type= 'text' name='fondo'><input type= 'hidden' name='opcion' value='1'><input type= 'submit' value='enviar'></form>"
@@ -158,11 +183,6 @@ def cargar_museos(request):
 
 @csrf_exempt
 def barra(request):
-    if request.user.is_authenticated():
-        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
-    else:
-        logged = 'Not logged in. <a href="/login"> Login</a>'
-
     comentarios = Comentario.objects.all()
     usuarios = Usuario.objects.all()
 
@@ -177,14 +197,13 @@ def barra(request):
         respuesta = mascomentados(repeticiones)
         boton = FILTROTODOS
 
-    return HttpResponse(logged + "<br>" + respuesta + "<br>" + listausuarios + "<br>" + boton)
+    logueo = Login_info(request)
+
+    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + listausuarios + "<br>" + boton)
 
 @csrf_exempt
 def museoslist(request):
-    if request.user.is_authenticated():
-        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
-    else:
-        logged = 'Not logged in. <a href="/login"> Login</a>'
+    logueo = Login_info(request)
 
     museos = Museo.objects.all()
     if request.method == "POST":
@@ -195,7 +214,7 @@ def museoslist(request):
         respuesta += '<li> '+ museo.nombre + '<a href="' + str(museo.enlace) + '">' + " Enlace a página" + '</a>'
     respuesta += "</ul><ul>" 
     
-    return HttpResponse(logged + "<br>" + respuesta)
+    return HttpResponse(logueo + "<br>" + respuesta)
     
 
 @csrf_exempt
@@ -204,11 +223,10 @@ def museo(request, number):
         comentario = Comentario(comentario = request.POST['comentario'], usuario = Usuario.objects.get(nombre = request.user), museo = Museo.objects.get(id=int(number)))
         comentario.save()
 
+    logueo = Login_info(request)
     if request.user.is_authenticated():
-        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
         formulario = FORMULARIO_COMENTARIOS
     else:
-        logged = 'Not logged in. <a href="/login"> Login</a>'
         formulario = ""
     try:
         museos = Museo.objects.all()
@@ -216,7 +234,7 @@ def museo(request, number):
         respuesta = muestrainfo(museo, museos)
     except Museo.DoesNotExist:
         return HttpResponse("no existe")
-    return HttpResponse(logged + "<br>" + respuesta + "<br>" + formulario)
+    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + formulario)
 
 @csrf_exempt
 def usuario(request, number):
@@ -239,16 +257,13 @@ def usuario(request, number):
         formulariotitulo = "No eres propietario de la pagina"
         formulariofuente = ""
 
-    if request.user.is_authenticated():
-        logged = 'Logged in as ' + request.user.username + ' <a href="/logout"> Logout</a>'
-    else:
-        logged = 'Not logged in. <a href="/login"> Login</a>'
-
     query = request.GET.get('pag')
     cinco = False
+
+    logueo = Login_info(request)
 
     favoritos = Favorito.objects.all()
     respuesta, cinco = listavoritos(favoritos, query, number, cinco)
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
-    return HttpResponse(logged + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
+    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
