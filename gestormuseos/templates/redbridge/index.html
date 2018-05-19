@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>RedBridge Free Template</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="/static/images/style.css" type="text/css">
+</style>
+</head>
+<body>
+<div class="content">
+
+  <div id="submenu">
+      <div class="searchb"><br/>
+          {{ login|safe }}
+      </div>
+    <a href="/"><img src="/static/images/banner.jpeg" alt="" /></a><br>
+  <div class="bridge">
+  </div>
+  <div class="nav">
+    <ul>
+      <li><a href="/">HOME</a> | </li>
+      <li><a href="/museos">LISTA DE MUSEOS</a> | </li>
+    </ul>
+  </div>
+  <div class="right">
+    {{ usuarios|safe }}
+  </div>
+  <div class="center">
+    {{ contenido|safe }}
+    <hr>{{ accesibles|safe }}</hr>
+    {{ formulario|safe }}
+    {{ favorito|safe }}
+    {{ saltodepagina|safe }}
+    <br>{{ formulariotitulo|safe }}
+    {{ formulariofuente|safe }}
+
+    
+  </div>
+  <div class="footer">
+    <div class="padding"> Esta aplicación utiliza datos del portal de datos abiertos de la ciudad de Madrid<div class="right_"><a href="/about">About</a> </div>
+  </div>
+</div>
+</body>
+</html>

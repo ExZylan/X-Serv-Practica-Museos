@@ -15,6 +15,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth.views import logout, login
+from django.views.static import serve
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
@@ -23,6 +24,8 @@ urlpatterns = [
     url(r'^museos/(\d+)$', 'museos.views.museo'),
     url(r'^usuario/(\d+)$', 'museos.views.usuario'),
     url(r'^usuario/(\d+)/XML$', 'museos.views.xml'),
+    url(r'^about/$', 'museos.views.about'),
+    url(r'^static(.+)$',serve,{'document_root':'templates/redbridge'}),
     url(r'^$','museos.views.barra'),
     url(r'^logout', logout, {'next_page': '/'}),
     url(r'^login', 'museos.views.Login')

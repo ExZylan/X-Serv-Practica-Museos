@@ -6,6 +6,8 @@ from museos.xml_parser import myContentHandler
 from django.views.decorators.csrf import csrf_exempt
 from collections import OrderedDict
 import urllib.request
+from django.template.loader import get_template
+from django.template import Context
 
 from django.contrib.auth import authenticate, login
 
@@ -40,8 +42,8 @@ def Login_info(request):
         log += "<a href='/logout'> Logout </a></p>"
     else:
         log = "<form action='/login' method='post'>"
-        log += "user: <input type= 'text' name='user'>"
-        log += "password: <input type= 'password' name='password'>"
+        log += "Usuario: <input type= 'text' name='user'><br>"
+        log += "Contraseña: <input type= 'password' name='password'><br>"
         log += "<input type= 'submit' value='enviar'>"
         log += "</form>"
         #log += "<a href='/registro/'>Register </a>"
@@ -70,18 +72,17 @@ def Login(request):
     return redirect("/")
 
 def formfuente(usuario): 
-    formulariofuente = "<br>¿Cambiar formato?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Color letras: <input type= 'text' name='color'>Tamaño letras: <input type= 'text' name='tamano'>Color fondo: <input type= 'text' name='fondo'><input type= 'hidden' name='opcion' value='1'><input type= 'submit' value='enviar'></form>"
+    formulariofuente = "<br>¿Cambiar formato?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Color letras: <input type= 'text' name='color'><br>Tamaño letras: <input type= 'text' name='tamano'><br>Color fondo: <input type= 'text' name='fondo'><br><input type= 'hidden' name='opcion' value='1'><input type= 'submit' value='enviar'></form>"
 
     return formulariofuente
 
 def formtitulo(usuario):
-    formulariotitulo = "<br>¿Cambiar Titulo?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Titulo: <input type= 'text' name='titulo'><input type= 'hidden' name='opcion' value='2'><input type= 'submit' value='enviar'></form>"
+    formulariotitulo = "<br>¿Cambiar Titulo?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Titulo: <input type= 'text' name='titulo'><br><input type= 'hidden' name='opcion' value='2'><input type= 'submit' value='enviar'></form>"
 
     return formulariotitulo
 
 def enlacespaginas(number, query, favoritos, cinco):
     respuesta = ""
-    #print(int(len(favoritos)))
     if cinco:
         respuesta = '<a href="' + str(number) + "?pag=" + str((int(query) + 1)) + '">' + "Página siguiente" + '</a>'
     if int(query) > 0: 
@@ -98,7 +99,7 @@ def listavoritos(favoritos, query, number, cinco):
     for favorito in favoritos:
         if str(number) == str(favorito.usuario.id):
             if i >= museoinicio and i <= museofinal:
-                respuesta += '<li><a href="' + str(favorito.museo.enlace) + '">' + favorito.museo.nombre + "<br>" + '</a>' + favorito.museo.direccion + "<br>" + str(favorito.fecha) + "<br>" + '<a href="museos/' + str(favorito.museo.id) + '">' + "Mas Información" + '</a>'
+                respuesta += '<hr><a href="' + str(favorito.museo.enlace) + '">' + favorito.museo.nombre + "<br>" + '</a>' + favorito.museo.direccion + "<br>" + str(favorito.fecha) + "<br>" + '<a href="museos/' + str(favorito.museo.id) + '">' + "Mas Información" + '</a>'
                 respuesta += "</ul><ul>"
             if i == museofinal:
                 cinco = True
@@ -107,9 +108,9 @@ def listavoritos(favoritos, query, number, cinco):
     return respuesta, cinco
 
 def listarusuarios(usuarios):
-    respuesta = ""
+    respuesta = "<h2>Lista de usuarios</h2>"
     for usuario in usuarios:
-        respuesta += "<br><li>" + str(usuario.nombre) + ": " + '<a href="usuario/' + str(usuario.id) + '?pag=0">' + usuario.titulo + '</a>'
+        respuesta += "<br><hr>" + str(usuario.nombre) + ": " + '<a href="usuario/' + str(usuario.id) + '?pag=0">' + usuario.titulo + '</a></hr>'
 
     return respuesta
 
@@ -121,11 +122,11 @@ def muestrainfo(museo, museos):
                 accesible = "Si"
             else:
                 accesible = "No"
-            respuesta = "<ul>" + "Nombre: " + museo.nombre + "<br>Dirección: " + museo.direccion +  "<br>Barrio: " + museo.barrio + "<br>Distrito: " + museo.distrito + "<br>Accesibilidad: " + accesible + "<br>Contacto:<br><li>Teléfono: " + museo.telefono + "<br><li>Fax: " + museo.fax + "<br><li>Email: " + museo.email + "<br>Descripción: " + museo.descripcion + "<br>" + '<a href="' + str(museo.enlace) + '">' + "Enlace página web" + "<br>" + '</a>'
+            respuesta = "<ul><p>" + "Nombre: " + museo.nombre + "<br>Dirección: " + museo.direccion +  "<br>Barrio: " + museo.barrio + "<br>Distrito: " + museo.distrito + "<br>Accesibilidad: " + accesible + "<br>Contacto:<br>Teléfono: " + museo.telefono + "<br>Fax: " + museo.fax + "<br>Email: " + museo.email + "<br>Descripción: " + museo.descripcion + "<br>" + '<a href="' + str(museo.enlace) + '">' + "Enlace página web" + "<br>" + '</a></p>'
         respuesta += "<br> Comentarios: "
     for comentario in comentarios:
         if str(museo) == str(comentario.museo.nombre):
-            respuesta += "<br><li>" + comentario.comentario
+            respuesta += """<br><img src="/static/images/li.gif" alt="" />""" + comentario.comentario
     return respuesta
 
 def filtraaccesibles(listaaccesibles, repeticiones):
@@ -172,11 +173,11 @@ def contador(comentarios):
 def mascomentados(repeticiones):
     repe = 1
     museos = Museo.objects.all()
-    respuesta = "<ul>"
+    respuesta = "<h2>¡Lista de museos más comentados!</h2><ul>"
     for repeticion in repeticiones:
         for museo in museos:
             if repeticion[0] == museo.nombre and repe <= 5:
-                respuesta += '<li><a href="' + str(museo.enlace) + '">' + museo.nombre + "<br>" + '</a>' + museo.direccion + "<br>" + '<a href="museos/' + str(museo.id) + '">' + "Mas Información" + '</a>'
+                respuesta += '<hr><h1 class="Titulos"><a href="' + str(museo.enlace) + '">' + museo.nombre + "<br>" + '</a></h1>' + museo.direccion + "<br>" + '<a href="museos/' + str(museo.id) + '">' + "Mas Información" + '</a></hr>'
                 repe = repe + 1
         respuesta += "</ul><ul>" 
     return respuesta
@@ -211,13 +212,18 @@ def barra(request):
         respuesta = mascomentados(repeticiones)
         boton = FILTROTODOS
 
-    logueo = Login_info(request)
+    #logueo = Login_info(request)
 
-    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + listausuarios + "<br>" + boton)
+    template = get_template('redbridge/index.html');
+    c = Context({'contenido': respuesta, 'login': Login_info(request), 'usuarios': listausuarios, 'accesibles': boton})
+    return HttpResponse (template.render(c))
+
+
+    #return HttpResponse(logueo + "<br>" + respuesta + "<br>" + listausuarios + "<br>" + boton)
 
 @csrf_exempt
 def museoslist(request):
-    logueo = Login_info(request)
+    #logueo = Login_info(request)
 
     museos = Museo.objects.all()
     if request.method == "POST":
@@ -225,10 +231,14 @@ def museoslist(request):
     listadistritos = creadistritos(museos)
     respuesta = formulariodistritos(listadistritos)
     for museo in museos:
-        respuesta += '<li> '+ museo.nombre + '<a href="/museos/' + str(museo.id) + '">' + " Enlace a página" + '</a>'
+        respuesta += '<hr>'+ museo.nombre + '<a href="/museos/' + str(museo.id) + '">' + " Enlace a página" + '</a>'
     respuesta += "</ul><ul>" 
+
+    template = get_template('redbridge/index.html');
+    c = Context({'contenido': respuesta, 'login': Login_info(request)})
+    return HttpResponse (template.render(c))
     
-    return HttpResponse(logueo + "<br>" + respuesta)
+    #return HttpResponse(logueo + "<br>" + respuesta)
     
 
 @csrf_exempt
@@ -258,7 +268,12 @@ def museo(request, number):
             favorito = ""
     except Museo.DoesNotExist:
         return HttpResponse("no existe")
-    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + formulario + "<br>" + favorito)
+
+    template = get_template('redbridge/index.html');
+    c = Context({'contenido': respuesta, 'login': Login_info(request), 'formulario': formulario, 'favorito': favorito})
+    return HttpResponse (template.render(c))
+
+    #return HttpResponse(logueo + "<br>" + respuesta + "<br>" + formulario + "<br>" + favorito)
 
 @csrf_exempt
 def usuario(request, number):
@@ -290,7 +305,11 @@ def usuario(request, number):
     respuesta, cinco = listavoritos(favoritos, query, number, cinco)
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
-    return HttpResponse(logueo + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
+    template = get_template('redbridge/index.html');
+    c = Context({'contenido': respuesta, 'login': Login_info(request), 'saltodepagina': saltodepagina, 'formulariotitulo': formulariotitulo, 'formulariofuente': formulariofuente})
+    return HttpResponse (template.render(c))
+
+    #return HttpResponse(logueo + "<br>" + respuesta + "<br>" + saltodepagina + "<br>" + formulariotitulo + "<br>" + formulariofuente)
 
 def xml(request, number):
     favoritos = Favorito.objects.all()
@@ -299,13 +318,12 @@ def xml(request, number):
     xml = """<?xml version="1.0" encoding="UTF-8" ?>\n\n\n"""
     xml += "\n<Contenidos>\n"
     for favorito in favoritos:
-        #print(favorito)
         if usuario.nombre.username == favorito.usuario.nombre.username:
-            #print(usuario.nombre.username)
             xml += "\t<contenido>\n"
             xml += """\t\t<atributo nombre = "NOMBRE">""" + favorito.museo.nombre + """</atributo>\n"""
             xml += """\t\t<atributo nombre = "DESCRIPCION-ENTIDAD">""" + favorito.museo.descripcion + """</atributo>\n"""
             xml += """\t\t<atributo nombre = "ACCESIBILIDAD">""" + str(favorito.museo.accesible) + """</atributo>\n"""
+            print(favorito.museo.enlace)
             xml += """\t\t<atributo nombre = "CONTENT-URL">""" + favorito.museo.email + """</atributo>\n"""
             xml += """\t\t<atributo nombre = "LOCALIZACION">\n"""
             xml += """\t\t\t<atributo nombre = "DIRECCION">""" + favorito.museo.direccion + """</atributo>\n"""
@@ -319,4 +337,12 @@ def xml(request, number):
             xml += """\t\t</atributo>\n"""
             xml += "\t</contenido>\n"
     xml += "</Contenidos>"
-    return HttpResponse(xml, content_type="text/xml")        
+    return HttpResponse(xml, content_type="text/xml")
+
+@csrf_exempt
+def about(request):
+    respuesta = "<h2>Práctica final Mis museos</h2><br><hr>Esta pagina ha sido realizada con el fin de la entrega de la práctica final mis museos por el alumno Jesús Miguel del Álamo Albiol"
+
+    template = get_template('redbridge/index.html');
+    c = Context({'contenido': respuesta, 'login': Login_info(request)})
+    return HttpResponse (template.render(c))
