@@ -116,6 +116,7 @@ def enlacespaginas(number, query, favoritos, cinco):
         respuesta = '<a href="' + str(number) + "?pag=" + str((int(query) + 1)) + '">' + "Página siguiente" + '</a>'
     if int(query) > 0: 
         respuesta += '<br><a href="' + str(number) + "?pag=" + str((int(query) + -1)) + '">' + "Página anterior" + '</a>'
+    respuesta += '<br><a href="' + str(number) + "/XML" + '">' + "Mostrar xml" + '</a>'
 
     return respuesta
 
