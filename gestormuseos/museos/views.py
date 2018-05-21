@@ -46,7 +46,6 @@ def Login_info(request):
         log += "Contraseña: <input type= 'password' name='password'><br>"
         log += "<input type= 'submit' value='enviar'>"
         log += "</form>"
-        #log += "<a href='/registro/'>Register </a>"
     return log
 
 def seleccionafavorito(usuario, museo):
@@ -72,12 +71,42 @@ def Login(request):
     return redirect("/")
 
 def formfuente(usuario): 
-    formulariofuente = "<br>¿Cambiar formato?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Color letras: <input type= 'text' name='color'><br>Tamaño letras: <input type= 'text' name='tamano'><br>Color fondo: <input type= 'text' name='fondo'><br><input type= 'hidden' name='opcion' value='1'><input type= 'submit' value='enviar'></form>"
+    formulariofuente = """<form method='POST'>
+                <b>Tamaño letra:</b>
+                <select name='Letra'>
+                    <option value='10'>10</option>
+                    <option value='16'>16</option>
+                    <option value='19'>19</option>
+                    <option value='22'>22</option>
+                    <option value='13'>Default(13)</option>
+                </select>
+                <input type= 'hidden' name='opcion' value='1'>
+                <input type='submit' value='Enviar'>
+            </form>
+            <form method='POST'>
+                <b>Color de fondo:</b>
+                <select name='Color'>
+                    <option value='blue'>Azul</option>
+                    <option value='red'>Rojo</option>
+                    <option value='white'>Blanco</option>
+                    <option value='pink'>Rosa</option>
+                    <option value='orange'>Naranja</option>
+                    <option value='#1E1F21'>Default</option>
+                </select>
+                <input type= 'hidden' name='opcion' value='2'>
+                <input type='submit' value='Enviar'>
+            </form>"""
 
     return formulariofuente
 
 def formtitulo(usuario):
-    formulariotitulo = "<br>¿Cambiar Titulo?<form action='" + str(usuario.id) + "?pag=0' method='POST'>Titulo: <input type= 'text' name='titulo'><br><input type= 'hidden' name='opcion' value='2'><input type= 'submit' value='enviar'></form>"
+    formulariotitulo = """<form method = 'POST'>
+                <b><br>Titulo de la página:
+                </b><br>
+                <input type='text' name='Title'><br>
+                <input type= 'hidden' name='opcion' value='3'>
+                <input type='submit' value='Enviar'>
+            </form>"""
 
     return formulariotitulo
 
@@ -99,7 +128,7 @@ def listavoritos(favoritos, query, number, cinco):
     for favorito in favoritos:
         if str(number) == str(favorito.usuario.id):
             if i >= museoinicio and i <= museofinal:
-                respuesta += '<hr><a href="' + str(favorito.museo.enlace) + '">' + favorito.museo.nombre + "<br>" + '</a>' + favorito.museo.direccion + "<br>" + str(favorito.fecha) + "<br>" + '<a href="museos/' + str(favorito.museo.id) + '">' + "Mas Información" + '</a>'
+                respuesta += '<hr><a href="' + str(favorito.museo.enlace) + '">' + favorito.museo.nombre + "<br>" + '</a>' + favorito.museo.direccion + "<br>" + str(favorito.fecha) + "<br>" + '<a href="/museos/' + str(favorito.museo.id) + '">' + "Mas Información" + '</a>'
                 respuesta += "</ul><ul>"
             if i == museofinal:
                 cinco = True
@@ -281,11 +310,11 @@ def usuario(request, number):
     if request.method == "POST":
         opcion = request.POST['opcion']
         if opcion == "1":
-            usuario.color = request.POST['color']
-            usuario.tamano = request.POST['tamano']
-            usuario.fondo = request.POST['fondo']
+            usuario.tamano = request.POST['Letra']
         elif opcion == "2":
-            usuario.titulo = request.POST['titulo']
+            usuario.color = request.POST['Color']
+        elif opcion == "3":
+            usuario.titulo = request.POST['Title']
         usuario.save()
 
     if usuario.nombre.username == request.user.username:
@@ -305,6 +334,10 @@ def usuario(request, number):
     respuesta, cinco = listavoritos(favoritos, query, number, cinco)
     saltodepagina = enlacespaginas(number, query, favoritos, cinco)
 
+    print(request.user.is_authenticated())
+    print(request.user)
+
+    #css = get_template('redbridge/images/style.css')
     template = get_template('redbridge/index.html');
     c = Context({'contenido': respuesta, 'login': Login_info(request), 'saltodepagina': saltodepagina, 'formulariotitulo': formulariotitulo, 'formulariofuente': formulariofuente})
     return HttpResponse (template.render(c))
@@ -324,7 +357,7 @@ def xml(request, number):
             xml += """\t\t<atributo nombre = "DESCRIPCION-ENTIDAD">""" + favorito.museo.descripcion + """</atributo>\n"""
             xml += """\t\t<atributo nombre = "ACCESIBILIDAD">""" + str(favorito.museo.accesible) + """</atributo>\n"""
             print(favorito.museo.enlace)
-            xml += """\t\t<atributo nombre = "CONTENT-URL">""" + favorito.museo.email + """</atributo>\n"""
+            xml += """\t\t<atributo nombre = "CONTENT-URL">""" + "<![CDATA[" + favorito.museo.enlace + "]]>" + """</atributo>\n"""
             xml += """\t\t<atributo nombre = "LOCALIZACION">\n"""
             xml += """\t\t\t<atributo nombre = "DIRECCION">""" + favorito.museo.direccion + """</atributo>\n"""
             xml += """\t\t\t<atributo nombre = "BARRIO">""" + favorito.museo.barrio + """</atributo>\n"""
@@ -341,8 +374,24 @@ def xml(request, number):
 
 @csrf_exempt
 def about(request):
-    respuesta = "<h2>Práctica final Mis museos</h2><br><hr>Esta pagina ha sido realizada con el fin de la entrega de la práctica final mis museos por el alumno Jesús Miguel del Álamo Albiol"
+    respuesta = "<h2>Práctica final Mis museos</h2><br><hr>Esta pagina ha sido realizada con el fin de la entrega de la práctica final mis museos por el alumno Jesús Miguel del Álamo Albiol<br>Esta aplicacion contiene una base de datos de museos obtenida por la Comunidad de Madrid donde podrás buscar, valorar y guardar museos"
 
     template = get_template('redbridge/index.html');
     c = Context({'contenido': respuesta, 'login': Login_info(request)})
     return HttpResponse (template.render(c))
+
+def css(request):
+    #print(request.user)
+    template = get_template('redbridge/images/style.css')
+    color_user = "#1E1F21"
+    letra_user = "12px"
+    #print(request.user.id)
+    #if request.user.is_authenticated():
+    #    print("XXX")
+        #usuario = User.objects.get(username=request.user)
+        #color_user = Configuracion.objects.get(usuario=usuario).fondo
+        #letra_user = str(Configuracion.objects.get(usuario=usuario).tamano)+'px'
+    #print(color_user)
+    c = Context({'Color': color_user, 'Letra': letra_user})
+
+    return HttpResponse (template.render(c),content_type="text/css")

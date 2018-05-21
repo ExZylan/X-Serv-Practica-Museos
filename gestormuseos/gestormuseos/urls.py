@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^usuario/(\d+)$', 'museos.views.usuario'),
     url(r'^usuario/(\d+)/XML$', 'museos.views.xml'),
     url(r'^about/$', 'museos.views.about'),
+    url(r'^css$', 'museos.views.css'),
     url(r'^static(.+)$',serve,{'document_root':'templates/redbridge'}),
     url(r'^$','museos.views.barra'),
     url(r'^logout', logout, {'next_page': '/'}),
